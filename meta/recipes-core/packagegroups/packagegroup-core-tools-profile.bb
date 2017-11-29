@@ -33,6 +33,7 @@ PERF_libc-musl = ""
 SYSTEMTAP = "systemtap"
 SYSTEMTAP_libc-musl = ""
 SYSTEMTAP_nios2 = ""
+SYSTEMTAP_microblaze = ""
 SYSTEMTAP_riscv64 = ""
 
 # lttng-ust uses sched_getcpu() which is not there on for some platforms.
@@ -62,6 +63,7 @@ VALGRIND_aarch64 = ""
 VALGRIND_riscv64 = ""
 VALGRIND_linux-gnux32 = ""
 VALGRIND_linux-gnun32 = ""
+VALGRIND_microblaze = ""
 
 RDEPENDS_${PN} = "\
     ${PROFILETOOLS} \
