@@ -1,0 +1,14 @@
+diff --git a/src/atomic_ops.h b/src/atomic_ops.h
+index 03f82a6619..453e336a10 100644
+--- a/src/atomic_ops.h
++++ b/src/atomic_ops.h
+@@ -333,6 +333,9 @@
+ # if defined(__tile__)
+ #   include "atomic_ops/sysdeps/gcc/tile.h"
+ # endif
++# if defined(__microblaze__)
++#   include "atomic_ops/sysdeps/gcc/generic.h"
++# endif
+ #endif /* __GNUC__ && !AO_USE_PTHREAD_DEFS */
+ 
+ #if (defined(__IBMC__) || defined(__IBMCPP__)) && !defined(__GNUC__) \
