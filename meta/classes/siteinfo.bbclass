@@ -47,6 +47,7 @@ def siteinfo_data_for_machine(arch, os, d):
         "mipsisa32r6el": "endian-little bit-32 mips-common",
         "powerpc": "endian-big bit-32 powerpc-common",
         "nios2": "endian-little bit-32 nios2-common",
+        "or1k" : "endian-big bit-32 or1k-common",
         "powerpc64": "endian-big bit-64 powerpc-common",
         "ppc": "endian-big bit-32 powerpc-common",
         "ppc64": "endian-big bit-64 powerpc-common",
