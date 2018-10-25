@@ -35,6 +35,7 @@ def map_kernel_arch(a, d):
     elif re.match('sh(3|4)$', a):               return 'sh'
     elif re.match('bfin', a):                   return 'blackfin'
     elif re.match('microblazee[bl]', a):        return 'microblaze'
+    elif re.match('or1k', a):                   return 'openrisc'
     elif a in valid_archs:                      return a
     else:
         if not d.getVar("TARGET_OS").startswith("linux"):
