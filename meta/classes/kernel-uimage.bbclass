@@ -18,6 +18,9 @@ python __anonymous () {
 
             # Enable building of uImage with mkimage
             bb.build.addtask('do_uboot_mkimage', 'do_install', 'do_kernel_link_images', d)
+
+            if d.getVar('INITRAMFS_IMAGE_BUNDLE') == "1":
+                bb.build.addtask('do_uboot_mkimage_initramfs', 'do_deploy', 'do_bundle_initramfs', d)
 }
 
 do_uboot_mkimage[dirs] += "${B}"
@@ -32,4 +35,18 @@ do_uboot_mkimage() {
 
 	uboot-mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C "${linux_comp}" -a ${UBOOT_LOADADDRESS} -e $ENTRYPOINT -n "${DISTRO_NAME}/${PV}/${MACHINE}" -d linux.bin ${B}/arch/${ARCH}/boot/uImage
 	rm -f linux.bin
+}
+
+do_uboot_mkimage_initramfs[dirs] += "${B}"
+do_uboot_mkimage_initramfs() {
+	uboot_prep_kimage .initramfs
+
+	ENTRYPOINT=${UBOOT_ENTRYPOINT}
+	if [ -n "${UBOOT_ENTRYSYMBOL}" ]; then
+		ENTRYPOINT=`${HOST_PREFIX}nm ${B}/vmlinux.initramfs | \
+			awk '$3=="${UBOOT_ENTRYSYMBOL}" {print "0x"$1;exit}'`
+	fi
+
+	uboot-mkimage -A ${UBOOT_ARCH} -O linux -T kernel -C "${linux_comp}" -a ${UBOOT_LOADADDRESS} -e $ENTRYPOINT -n "${DISTRO_NAME}/${PV}/${MACHINE}" -d linux.bin.initramfs ${B}/arch/${ARCH}/boot/uImage.initramfs
+	rm -f linux.bin.initramfs
 }
