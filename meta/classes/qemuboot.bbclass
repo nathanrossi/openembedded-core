@@ -112,6 +112,7 @@ python do_write_qemuboot_conf() {
     # and still run them
     kernel = os.path.relpath(kernel, finalpath)
     cf.set('config_bsp', 'QB_DEFAULT_KERNEL', kernel)
+    cf.set('config_bsp', 'KERNEL_IMAGETYPE', d.getVar("QB_DEFAULT_KERNEL"))
 
     bb.utils.mkdirhier(os.path.dirname(qemuboot))
     with open(qemuboot, 'w') as f:
