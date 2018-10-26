@@ -101,6 +101,8 @@ def siteinfo_data_for_machine(arch, os, d):
         "mips64el-linux-gnun32": "mipsel-linux bit-32",
         "mipsisa64r6-linux-gnun32": "mipsisa32r6-linux bit-32",
         "mipsisa64r6el-linux-gnun32": "mipsisa32r6el-linux bit-32",
+        "or1k-linux": "or1k-linux",
+        "or1k-linux-musl": "or1k-linux",
         "powerpc-linux": "powerpc32-linux",
         "powerpc-linux-musl": "powerpc-linux powerpc32-linux",
         "powerpc-linux-gnuspe": "powerpc-linux powerpc32-linux",
