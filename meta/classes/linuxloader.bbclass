@@ -7,6 +7,8 @@ def get_musl_loader(d):
         dynamic_loader = "${base_libdir}/ld-musl-microblaze${@bb.utils.contains('TUNE_FEATURES', 'bigendian', '', 'el' ,d)}.so.1"
     elif targetarch.startswith("mips"):
         dynamic_loader = "${base_libdir}/ld-musl-mips${ABIEXTENSION}${MIPSPKGSFX_BYTE}${MIPSPKGSFX_R6}${MIPSPKGSFX_ENDIAN}${@['', '-sf'][d.getVar('TARGET_FPU') == 'soft']}.so.1"
+    elif targetarch.startswith("or1k"):
+        dynamic_loader = "${base_libdir}/ld-musl-or1k.so.1"
     elif targetarch == "powerpc":
         dynamic_loader = "${base_libdir}/ld-musl-powerpc${@['', '-sf'][d.getVar('TARGET_FPU') == 'soft']}.so.1"
     elif targetarch == "powerpc64":
@@ -34,6 +36,8 @@ def get_glibc_loader(d):
         dynamic_loader = "${base_libdir}/ld-linux-mipsn8.so.1"
     elif targetarch.startswith("mips"):
         dynamic_loader = "${base_libdir}/ld.so.1"
+    elif targetarch.startswith("or1k"):
+        dynamic_loader = "${base_libdir}/ld-linux-or1k.so.1"
     elif targetarch == "powerpc64":
         dynamic_loader = "${base_libdir}/ld64.so.1"
     elif targetarch == "x86_64":
