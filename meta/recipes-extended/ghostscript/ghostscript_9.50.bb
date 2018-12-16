@@ -122,8 +122,7 @@ do_install_class-native () {
 
 BBCLASSEXTEND = "native"
 
-# ghostscript does not supports "arc"
-COMPATIBLE_HOST = "^(?!arc).*"
+COMPATIBLE_HOST = "(aarch64|arm|i.86|microblaze|mips|nios2|powerpc|x86_64).*"
 
 # some entries in NVD uses gpl_ghostscript
 CVE_PRODUCT = "ghostscript gpl_ghostscript"
