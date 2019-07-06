@@ -64,6 +64,7 @@ SRC_URI = "\
            file://0035-fix-segmentation-fault-in-precompiled-header-generat.patch \
            file://0036-Fix-for-testsuite-failure.patch \
            file://0037-Re-introduce-spe-commandline-options.patch \
+           file://WIP.patch \
 "
 SRC_URI[md5sum] = "6069ae3737cf02bf2cb44a391ef0e937"
 SRC_URI[sha256sum] = "79a66834e96a6050d8fe78db2c3b32fb285b230b855d0a66288235bc04b327a0"

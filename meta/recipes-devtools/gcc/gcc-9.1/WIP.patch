@@ -1,0 +1,95 @@
+diff --git a/gcc/testsuite/gcc.c-torture/execute/fprintf-2.c b/gcc/testsuite/gcc.c-torture/execute/fprintf-2.c
+index bba4a446ee..5caae12c49 100644
+--- a/gcc/testsuite/gcc.c-torture/execute/fprintf-2.c
++++ b/gcc/testsuite/gcc.c-torture/execute/fprintf-2.c
+@@ -9,6 +9,7 @@
+ 
+ int main (void)
+ {
++// { dg-prune-output "warning: the use of .tmpnam. is dangerous" }
+   char *tmpfname = tmpnam (0);
+   FILE *f = fopen (tmpfname, "w");
+   if (!f)
+diff --git a/gcc/testsuite/gcc.c-torture/execute/printf-2.c b/gcc/testsuite/gcc.c-torture/execute/printf-2.c
+index 2e9f2a2bb7..0aa5e6d879 100644
+--- a/gcc/testsuite/gcc.c-torture/execute/printf-2.c
++++ b/gcc/testsuite/gcc.c-torture/execute/printf-2.c
+@@ -23,6 +23,7 @@ write_file (void)
+ 
+ int main (void)
+ {
++// { dg-prune-output "warning: the use of .tmpnam. is dangerous" }
+   char *tmpfname = tmpnam (0);
+   FILE *f = freopen (tmpfname, "w", stdout);
+   if (!f)
+diff --git a/gcc/testsuite/gcc.c-torture/execute/user-printf.c b/gcc/testsuite/gcc.c-torture/execute/user-printf.c
+index 11c61fa394..9f17796de5 100644
+--- a/gcc/testsuite/gcc.c-torture/execute/user-printf.c
++++ b/gcc/testsuite/gcc.c-torture/execute/user-printf.c
+@@ -20,6 +20,7 @@ user_print (const char *fmt, ...)
+ 
+ int main (void)
+ {
++// { dg-prune-output "warning: the use of .tmpnam. is dangerous" }
+   char *tmpfname = tmpnam (0);
+   FILE *f = freopen (tmpfname, "w", stdout);
+   if (!f)
+diff --git a/gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c b/gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c
+index 4f39971a33..8800cd60fe 100644
+--- a/gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c
++++ b/gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c
+@@ -1,5 +1,6 @@
+ /* { dg-do compile } */
+ /* { dg-options "-std=c11 -O" } */
++/* { dg-skip-if "avoid conflicting multilib options" { *-*-* } { "-march=*" } { "-march=armv7-a" } } */
+ /* { dg-require-effective-target arm_arch_v7a_ok } */
+ /* { dg-add-options arm_arch_v7a } */
+ 
+diff --git a/gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c b/gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c
+index 8f94ba61b4..597f101071 100644
+--- a/gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c
++++ b/gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c
+@@ -1,5 +1,6 @@
+ /* { dg-do compile } */
+ /* { dg-options "-std=c11 -O" } */
++/* { dg-skip-if "avoid conflicting multilib options" { *-*-* } { "-march=*" } { "-march=armv7-a" } } */
+ /* { dg-require-effective-target arm_arch_v7a_ok } */
+ /* { dg-add-options arm_arch_v7a } */
+ 
+diff --git a/gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c b/gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c
+index 6743663f1e..c8ac0ba4d5 100644
+--- a/gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c
++++ b/gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c
+@@ -1,5 +1,6 @@
+ /* { dg-do compile } */
+ /* { dg-options "-std=c11 -O" } */
++/* { dg-skip-if "avoid conflicting multilib options" { *-*-* } { "-march=*" } { "-march=armv7-a" } } */
+ /* { dg-require-effective-target arm_arch_v7a_ok } */
+ /* { dg-add-options arm_arch_v7a } */
+ 
+diff --git a/gcc/testsuite/gcc.target/arm/polytypes.c b/gcc/testsuite/gcc.target/arm/polytypes.c
+index 110d62a879..3d49b508a8 100644
+--- a/gcc/testsuite/gcc.target/arm/polytypes.c
++++ b/gcc/testsuite/gcc.target/arm/polytypes.c
+@@ -28,7 +28,7 @@ void foo ()
+   poly8x16_t v128_8;
+   poly16x8_t v128_16;
+ 
+-  s64_8 (v64_8); /* { dg-message "use -flax-vector-conversions" } */
++  s64_8 (v64_8); /* { dg-message "use '?-flax-vector-conversions" } */
+   /* { dg-error "incompatible type for argument 1 of 's64_8'" "" { target *-*-* } .-1 } */
+   u64_8 (v64_8); /* { dg-error "incompatible type for argument 1 of 'u64_8'" } */
+   p64_8 (v64_8);
+diff --git a/gcc/testsuite/lib/target-supports.exp b/gcc/testsuite/lib/target-supports.exp
+index 4bb7da283f..58f5e9f313 100644
+--- a/gcc/testsuite/lib/target-supports.exp
++++ b/gcc/testsuite/lib/target-supports.exp
+@@ -3863,7 +3863,7 @@ proc add_options_for_arm_neon_softfp_fp16 { flags } {
+ proc check_effective_target_arm_fp16_alternative_ok_nocache { } {
+     global et_arm_neon_fp16_flags
+     set et_arm_neon_fp16_flags ""
+-    if { [check_effective_target_arm32] } {
++    if { [check_effective_target_arm32] && [check_effective_target_arm_fp16_ok] } {
+ 	foreach flags {"" "-mfloat-abi=softfp" "-mfpu=neon-fp16"
+ 		       "-mfpu=neon-fp16 -mfloat-abi=softfp"} {
+ 	    if { [check_no_compiler_messages_nocache \
