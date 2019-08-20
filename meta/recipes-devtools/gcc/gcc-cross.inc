@@ -221,3 +221,44 @@ python do_gcc_stash_builddir_setscene () {
     sstate_setscene(d)
 }
 addtask do_gcc_stash_builddir_setscene
+
+require gcc-testsuite.inc
+
+check_prepare_sysroot () {
+    if [ ! -s ${RECIPE_SYSROOT}${target_includedir}/limits.h ]; then
+        # this file was created by the configure task, but is replaced by the
+        # libc version when populating the sysroot for the do_check task
+        rm ${RECIPE_SYSROOT}${target_includedir}/limits.h
+    fi
+}
+
+EXTRA_OEMAKE_prepend_task-check = "${PARALLEL_MAKE} "
+
+MAKE_CHECK_TARGETS ??= "check-gcc check-g++ check-lto"
+
+python () {
+    # crosssdk deps have different virtual targets
+    if bb.data.inherits_class('crosssdk', d):
+        d.appendVarFlag("do_check", "depends", " virtual/nativesdk-${TARGET_PREFIX}compilerlibs:do_populate_sysroot")
+    else:
+        d.appendVarFlag("do_check", "depends", " virtual/${TARGET_PREFIX}compilerlibs:do_populate_sysroot")
+}
+
+# specific host and target dependencies required for test suite running
+do_check[depends] += "dejagnu-native:do_populate_sysroot expect-native:do_populate_sysroot"
+do_check[depends] += "virtual/libc:do_populate_sysroot"
+# only depend on qemu if targeting linux user execution
+do_check[depends] += "${@'qemu-native:do_populate_sysroot' if "user" in d.getVar('BUILD_TEST_TARGET') else ''}"
+# check_prepare_sysroot is before extend in order to perform the limits.h removal
+do_check[prefuncs] += "check_prepare_sysroot"
+do_check[prefuncs] += "extend_recipe_sysroot"
+do_check[prefuncs] += "check_prepare"
+do_check[dirs] = "${WORKDIR}/dejagnu ${B}"
+do_check[nostamp] = "1"
+do_check() {
+    export DEJAGNU="${WORKDIR}/dejagnu/site.exp"
+
+    oe_runmake -i -C ${B}/gcc ${MAKE_CHECK_TARGETS} RUNTESTFLAGS="${MAKE_CHECK_BOARDARGS}"
+}
+addtask check after do_compile do_populate_sysroot
+
