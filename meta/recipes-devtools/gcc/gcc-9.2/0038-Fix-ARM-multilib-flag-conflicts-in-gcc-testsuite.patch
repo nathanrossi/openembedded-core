@@ -1,0 +1,61 @@
+From 909c2768cd379fe1ccd5f0ae89e0db7c643b5f63 Mon Sep 17 00:00:00 2001
+From: Nathan Rossi <nathan@nathanrossi.com>
+Date: Mon, 26 Aug 2019 21:12:23 +1000
+Subject: [PATCH] Fix ARM multilib flag conflicts in gcc testsuite
+
+PR target/69875 introduced differences between armv7-a and armv7ve for
+atomic_loaddi* tests, as such if the multilib flags passed into the
+testsuite run included -march=armv7ve these atomic_loaddi tests would
+fail due to the provided multilib flags.
+
+For these tests introduce a dg-skip-if for when '-march=' is provided
+and is not 'armv7-a'.
+
+gcc/testsuite/ChangeLog:
+
+2019-08-26  Nathan Rossi  <nathan@nathanrossi.com>
+
+        gcc.target/arm/atomic_loaddi_1.c: Add dg-skip-if.
+        gcc.target/arm/atomic_loaddi_4.c: Likewise.
+        gcc.target/arm/atomic_loaddi_7.c: Likewise.
+
+Upstream-Status: Pending
+---
+ gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c | 1 +
+ gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c | 1 +
+ gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c b/gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c
+index 4f39971a33..8800cd60fe 100644
+--- a/gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c
++++ b/gcc/testsuite/gcc.target/arm/atomic_loaddi_1.c
+@@ -1,5 +1,6 @@
+ /* { dg-do compile } */
+ /* { dg-options "-std=c11 -O" } */
++/* { dg-skip-if "avoid conflicting multilib options" { *-*-* } { "-march=*" } { "-march=armv7-a" } } */
+ /* { dg-require-effective-target arm_arch_v7a_ok } */
+ /* { dg-add-options arm_arch_v7a } */
+ 
+diff --git a/gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c b/gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c
+index 8f94ba61b4..597f101071 100644
+--- a/gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c
++++ b/gcc/testsuite/gcc.target/arm/atomic_loaddi_4.c
+@@ -1,5 +1,6 @@
+ /* { dg-do compile } */
+ /* { dg-options "-std=c11 -O" } */
++/* { dg-skip-if "avoid conflicting multilib options" { *-*-* } { "-march=*" } { "-march=armv7-a" } } */
+ /* { dg-require-effective-target arm_arch_v7a_ok } */
+ /* { dg-add-options arm_arch_v7a } */
+ 
+diff --git a/gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c b/gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c
+index 6743663f1e..c8ac0ba4d5 100644
+--- a/gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c
++++ b/gcc/testsuite/gcc.target/arm/atomic_loaddi_7.c
+@@ -1,5 +1,6 @@
+ /* { dg-do compile } */
+ /* { dg-options "-std=c11 -O" } */
++/* { dg-skip-if "avoid conflicting multilib options" { *-*-* } { "-march=*" } { "-march=armv7-a" } } */
+ /* { dg-require-effective-target arm_arch_v7a_ok } */
+ /* { dg-add-options arm_arch_v7a } */
+ 
