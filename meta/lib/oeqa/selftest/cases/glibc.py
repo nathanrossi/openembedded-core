@@ -87,3 +87,18 @@ class GlibcSelfTestSystemEmulated(GlibcSelfTestBase):
     def test_glibc(self):
         self.run_check_emulated()
 
+class GlibcTestQemuStart(GlibcSelfTestBase):
+    def test_qemu(self):
+        with contextlib.ExitStack() as s:
+            features = []
+            features.append('IMAGE_FEATURES += "ssh-server-openssh"')
+            self.write_config("\n".join(features))
+            bitbake("core-image-minimal")
+
+            # start runqemu
+            qemu = s.enter_context(runqemu("core-image-minimal", runqemuparams = "nographic"))
+
+            # validate that SSH is working
+            status, _ = qemu.run("uname")
+            self.assertEqual(status, 0)
+
