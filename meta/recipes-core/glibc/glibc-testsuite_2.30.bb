@@ -24,6 +24,7 @@ inherit qemu
 SRC_URI += "file://check-test-wrapper"
 
 DEPENDS += "${@'qemu-native' if d.getVar('TOOLCHAIN_TEST_TARGET') == 'user' else ''}"
+DEPENDS += "${@'qemu-native proot-native' if d.getVar('TOOLCHAIN_TEST_TARGET') == 'proot' else ''}"
 
 TOOLCHAIN_TEST_TARGET ??= "user"
 TOOLCHAIN_TEST_HOST ??= "localhost"
@@ -36,6 +37,11 @@ do_check[dirs] += "${B}"
 do_check[nostamp] = "1"
 do_check () {
     chmod 0755 ${WORKDIR}/check-test-wrapper
+    # embed the ssh/qemu options into the test wrapper, to simplify manual test running
+    sed -i 's/^\(ssh_options = \).*$/\1 "${TOOLCHAIN_TEST_HOST}", "${TOOLCHAIN_TEST_HOST_USER}", "${TOOLCHAIN_TEST_HOST_PORT}"/' \
+        ${WORKDIR}/check-test-wrapper
+    sed -i 's/^\(qemu_options = \).*$/\1 "${@qemu_target_binary(d)} ${QEMU_OPTIONS}".split()/' \
+        ${WORKDIR}/check-test-wrapper
 
     # clean out previous test results
     oe_runmake tests-clean
@@ -54,11 +60,6 @@ do_check () {
         -C ${S}/localedata objdir=${B} ${B}/localedata/tst-locale.out
 
     oe_runmake -i \
-        QEMU_SYSROOT="${RECIPE_SYSROOT}" \
-        QEMU_OPTIONS="${@qemu_target_binary(d)} ${QEMU_OPTIONS}" \
-        SSH_HOST="${TOOLCHAIN_TEST_HOST}" \
-        SSH_HOST_USER="${TOOLCHAIN_TEST_HOST_USER}" \
-        SSH_HOST_PORT="${TOOLCHAIN_TEST_HOST_PORT}" \
         test-wrapper="${WORKDIR}/check-test-wrapper ${TOOLCHAIN_TEST_TARGET}" \
         check
 }

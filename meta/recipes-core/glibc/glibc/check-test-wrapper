@@ -7,15 +7,37 @@ env = os.environ.copy()
 args = sys.argv[1:]
 targettype = args.pop(0)
 
+workdir = os.path.abspath(os.path.dirname(__file__))
+sysroot = os.path.join(workdir, "recipe-sysroot")
+sysroot_native = os.path.join(workdir, "recipe-sysroot-native")
+
+qemu_options = "".split()
+ssh_options = "", "" ,""
+
+# let cwd match that of the caller, otherwise default to /
+cwd = os.path.abspath(os.getcwd())
+if not (cwd == workdir or cwd.startswith(workdir + "/")):
+    cwd = "/"
+
+def expandpath(path):
+    if os.path.isabs(path):
+        return path
+    if os.path.exists(os.path.abspath(path)):
+        return os.path.abspath(path)
+    # search PATH
+    bpath = os.path.basename(path)
+    nativepaths = [
+            os.path.join(sysroot_native, "usr", "bin"),
+            os.path.join(sysroot_native, "bin"),
+            ]
+    for i in nativepaths + os.environ.get("PATH", "").split(":"):
+        if os.path.exists(os.path.join(i, bpath)):
+            return os.path.join(i, bpath)
+    return path
+
 if targettype == "user":
-    qemuargs = os.environ.get("QEMU_OPTIONS", "").split()
-    if not os.path.exists(qemuargs[0]):
-        # ensure qemu args has a valid absolute path
-        for i in os.environ.get("PATH", "").split(":"):
-            if os.path.exists(os.path.join(i, qemuargs[0])):
-                qemuargs[0] = os.path.join(i, qemuargs[0])
-                break
-    sysroot = os.environ.get("QEMU_SYSROOT", None)
+    # ensure qemu args has a valid absolute path
+    qemu_options[0] = expandpath(qemu_options[0])
     if not sysroot:
         sys.exit(-1)
     libpaths = [sysroot + "/usr/lib", sysroot + "/lib"]
@@ -41,14 +63,28 @@ if targettype == "user":
         # ignore copies, the filesystem is the same
         sys.exit(0)
 
-    qemuargs += ["-L", sysroot]
-    qemuargs += ["-E", "LD_LIBRARY_PATH={}".format(":".join(libpaths))]
-    command = qemuargs + args
+    qemu_options += ["-L", sysroot]
+    qemu_options += ["-E", "LD_LIBRARY_PATH={}".format(":".join(libpaths))]
+    command = qemu_options + args
+elif targettype == "proot":
+    qemubinary = expandpath(qemu_options[0])
+    if not os.path.exists(os.path.join(sysroot, "bin")):
+        os.makedirs(os.path.join(sysroot, "bin"))
+    command = [expandpath("proot"),
+            "-S", sysroot,
+            "-q", qemubinary,
+            "-b", workdir, # bind WORKDIR
+            "-b", "/bin/bash:/bin/sh",
+            "-b", "/bin/ls:/bin/ls",
+            "-b", "/bin/echo:/bin/echo",
+            "-b", "/bin/cp:/bin/cp",
+            "-b", "/bin/chmod:/bin/chmod",
+            "-b", "/usr/bin/env:/usr/bin/env",
+            "-w", cwd,
+            ]
+    command += args
 elif targettype == "ssh":
-    host = os.environ.get("SSH_HOST", None)
-    user = os.environ.get("SSH_HOST_USER", None)
-    port = os.environ.get("SSH_HOST_PORT", None)
-
+    host, user, port = ssh_options
     command = ["ssh", "-o", "UserKnownHostsFile=/dev/null", "-o", "StrictHostKeyChecking=no"]
     if port:
         command += ["-p", str(port)]
@@ -57,7 +93,7 @@ elif targettype == "ssh":
     command += ["{}@{}".format(user, host) if user else host]
 
     # wrap and replace quotes for correct transformation on ssh
-    wrapped = " ".join(["'{0}'".format(i.replace("'", r"'\''")) for i in ["cd", os.getcwd()]]) + "; "
+    wrapped = " ".join(["'{0}'".format(i.replace("'", r"'\''")) for i in ["cd", cwd]]) + "; "
     wrapped += " ".join(["'{0}'".format(i.replace("'", r"'\''")) for i in args])
     command += ["sh", "-c", "\"{}\"".format(wrapped)]
 else:
