@@ -30,6 +30,8 @@ TOOLCHAIN_TEST_HOST ??= "localhost"
 TOOLCHAIN_TEST_HOST_USER ??= "root"
 TOOLCHAIN_TEST_HOST_PORT ??= "2222"
 
+EGLIBCPARALLELISM_task-check = "PARALLELMFLAGS="-j1""
+
 do_check[dirs] += "${B}"
 do_check[nostamp] = "1"
 do_check () {
@@ -43,6 +45,13 @@ do_check () {
     find ${B}/catgets -name "*.cat" -delete
     find ${B}/conform -name "symlist-*" -delete
     [ ! -e ${B}/timezone/testdata ] || rm -rf ${B}/timezone/testdata
+
+    # Generate all binary locale data first, there appears to be some parallel
+    # make issues otherwise. The tst-locale test also generates some additional
+    # test locales
+    oe_runmake -i \
+        test-wrapper="${WORKDIR}/check-test-wrapper ${TOOLCHAIN_TEST_TARGET}" \
+        -C ${S}/localedata objdir=${B} ${B}/localedata/tst-locale.out
 
     oe_runmake -i \
         QEMU_SYSROOT="${RECIPE_SYSROOT}" \
