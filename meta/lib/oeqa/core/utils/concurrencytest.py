@@ -81,6 +81,9 @@ class ProxyTestResult:
     def _addResult(self, method, test, *args, exception = False, **kwargs):
         return method(test, *args, **kwargs)
 
+    def addSubTest(self, test, subtest, outcome, **kwargs):
+        self._addResult(self.result.addSubTest, test, subtest, outcome, exception = (outcome is not None), **kwargs)
+
     def addError(self, test, err = None, **kwargs):
         self._addResult(self.result.addError, test, err, exception = True, **kwargs)
 

@@ -40,6 +40,7 @@ class OETestResult(_TestResult):
         super(OETestResult, self).__init__(*args, **kwargs)
 
         self.successes = []
+        self.subtests = {}
         self.starttime = {}
         self.endtime = {}
         self.progressinfo = {}
@@ -145,6 +146,13 @@ class OETestResult(_TestResult):
                 else:
                     self.extraresults[k] = v
 
+    def addSubTest(self, test, subtest, err, details=None):
+        self.extractExtraResults(test, details=details)
+        self.subtests.setdefault(test, list()).append(subtest)
+        if err is None:
+            self.successes.append((subtest, None))
+        return super(OETestResult, self).addSubTest(test, subtest, err)
+
     def addError(self, test, *args, details = None):
         self.extractExtraResults(test, details = details)
         return super(OETestResult, self).addError(test, *args)
@@ -169,17 +177,17 @@ class OETestResult(_TestResult):
 
     def logDetails(self, json_file_dir=None, configuration=None, result_id=None,
             dump_streams=False):
-        self.tc.logger.info("RESULTS:")
 
-        result = self.extraresults
-        logs = {}
-        if hasattr(self.tc, "extraresults"):
-            result.update(self.tc.extraresults)
-
-        for case_name in self.tc._registry['cases']:
-            case = self.tc._registry['cases'][case_name]
+        def logCaseDetails(case, required):
+            nonlocal self
+            nonlocal result
+            nonlocal dump_streams
+            nonlocal logs
 
             (status, log) = self._getTestResultDetails(case)
+
+            if status == "UNKNOWN" and not required:
+                return
 
             t = ""
             if case.id() in self.starttime and case.id() in self.endtime:
@@ -196,6 +204,26 @@ class OETestResult(_TestResult):
                 report['stdout'] = stdout
                 report['stderr'] = stderr
             result[case.id()] = report
+
+        self.tc.logger.info("RESULTS:")
+
+        result = self.extraresults
+        logs = {}
+        if hasattr(self.tc, "extraresults"):
+            result.update(self.tc.extraresults)
+
+        for case_name in self.tc._registry['cases']:
+            case = self.tc._registry['cases'][case_name]
+
+            if case in self.subtests:
+                for subtest in self.subtests[case]:
+                    logCaseDetails(subtest, True)
+
+                # The base case may not have any reported details. If it comes
+                # up as unknown, don't report anything.
+                logCaseDetails(case, False)
+            else:
+                logCaseDetails(case, True)
 
         for i in ['PASSED', 'SKIPPED', 'EXPECTEDFAIL', 'ERROR', 'FAILED', 'UNKNOWN']:
             if i not in logs:
