@@ -81,9 +81,6 @@ class ProxyTestResult:
     def _addResult(self, method, test, *args, exception = False, **kwargs):
         return method(test, *args, **kwargs)
 
-    def addSubTest(self, test, subtest, outcome, **kwargs):
-        self._addResult(self.result.addSubTest, test, subtest, outcome, exception = (outcome is not None), **kwargs)
-
     def addError(self, test, err = None, **kwargs):
         self._addResult(self.result.addError, test, err, exception = True, **kwargs)
 
@@ -103,35 +100,131 @@ class ProxyTestResult:
         return getattr(self.result, attr)
 
 class ExtraResultsDecoderTestResult(ProxyTestResult):
+    class RemotedSubTest:
+        def __init__(self, testcase, idstring):
+            self.testcase = testcase
+            self.idstring = idstring
+
+        def id(self):
+            return self.idstring
+
+        def __str__(self):
+            return self.idstring
+
+        def shortDescription(self):
+            return self.testcase.shortDescription()
+
+    class _StringException(testtools.testresult.real._StringException, AssertionError):
+        pass
+
+    @staticmethod
+    def decodeexception(outcome):
+        failure = outcome.get("failure", False)
+        if failure:
+            exceptiontype = ExtraResultsDecoderTestResult._StringException
+        else:
+            exceptiontype = testtools.testresult.real._StringException
+        return (exceptiontype, exceptiontype(outcome.get("exception")), None)
+
+    @staticmethod
+    def jsondecode(content):
+        data = bytearray()
+        for b in content.iter_bytes():
+            data += b
+        return json.loads(data.decode())
+
     def _addResult(self, method, test, *args, exception = False, **kwargs):
         if "details" in kwargs and "extraresults" in kwargs["details"]:
             if isinstance(kwargs["details"]["extraresults"], Content):
                 kwargs = kwargs.copy()
                 kwargs["details"] = kwargs["details"].copy()
-                extraresults = kwargs["details"]["extraresults"]
-                data = bytearray()
-                for b in extraresults.iter_bytes():
-                    data += b
-                extraresults = json.loads(data.decode())
-                kwargs["details"]["extraresults"] = extraresults
+                kwargs["details"]["extraresults"] = self.jsondecode(kwargs["details"]["extraresults"])
+        if "details" in kwargs and "subtests" in kwargs["details"]:
+            for subtest, outcome in self.jsondecode(kwargs["details"]["subtests"]).items():
+                if outcome is None:
+                    self.result.addSubTest(test, self.RemotedSubTest(test, subtest), None, **kwargs)
+                else:
+                    # convert traceback string to outcome info
+                    self.result.addSubTest(test, self.RemotedSubTest(test, subtest),
+                        self.decodeexception(outcome), **kwargs)
+        if "details" in kwargs and "forced_unknown" in kwargs["details"]:
+            return None # "unknown" result
         return method(test, *args, **kwargs)
 
 class ExtraResultsEncoderTestResult(ProxyTestResult):
+    def __init__(self, target):
+        super().__init__(target)
+        self.subtests = [] # the test/subtest objects are not hashable
+        self.subtested = []
+
+    @staticmethod
+    def jsonencode(content):
+        encoder = lambda : [json.dumps(content).encode()]
+        return Content(ContentType("application", "json", {'charset': 'utf8'}), encoder)
+
     def _addResult(self, method, test, *args, exception = False, **kwargs):
+        newdetails = {}
+
         if hasattr(test, "extraresults"):
-            extras = lambda : [json.dumps(test.extraresults).encode()]
-            kwargs = kwargs.copy()
-            if "details" not in kwargs:
-                kwargs["details"] = {}
-            else:
-                kwargs["details"] = kwargs["details"].copy()
-            kwargs["details"]["extraresults"] = Content(ContentType("application", "json", {'charset': 'utf8'}), extras)
+            newdetails["extraresults"] = self.jsonencode(test.extraresults)
+
+        # encode the subtests into the details object if they exist
+        entry = next((i for i in self.subtests if i[0] == test), None)
+        if entry is not None:
+            # clean up, to speed up later lookups
+            self.subtests.remove(entry)
+            self.subtested.append(test)
+
+            subtests = {}
+            for subtest, outcome in entry[1]:
+                if outcome is None:
+                    subtests[subtest.id()] = None
+                else:
+                    # generate traceback of the exception, use testtools to generate it
+                    content = testtools.content.TracebackContent(outcome, subtest)
+                    data = bytearray()
+                    for b in content.iter_bytes():
+                        data += b
+                    subtests[subtest.id()] = {
+                            "failure": issubclass(outcome[0], test.failureException),
+                            "exception" : data.decode()
+                            }
+            newdetails["subtests"] = self.jsonencode(subtests)
+
         # if using details, need to encode any exceptions into the details obj,
         # testtools does not handle "err" and "details" together.
-        if "details" in kwargs and exception and (len(args) >= 1 and args[0] is not None):
-            kwargs["details"]["traceback"] = testtools.content.TracebackContent(args[0], test)
+        if len(newdetails) != 0 and exception and (len(args) >= 1 and args[0] is not None):
+            newdetails["traceback"] = testtools.content.TracebackContent(args[0], test)
             args = []
+
+        # inject details is there are any newly modified/added entries
+        if len(newdetails) != 0:
+            kwargs = kwargs.copy()
+            if "details" in kwargs:
+                kwargs["details"] = kwargs["details"].copy()
+                kwargs["details"].update(newdetails)
+            else:
+                kwargs["details"] = newdetails
+
         return method(test, *args, **kwargs)
+
+    def addSubTest(self, test, subtest, outcome, **kwargs):
+        for (i, subtests) in self.subtests:
+            if i != test:
+                continue
+            subtests.append((subtest, outcome))
+            return
+        self.subtests.append((test, [(subtest, outcome)]))
+
+    def stopTest(self, test):
+        # if a testcase using subTest does not assert or similar it will be
+        # considered "unknown", but the subtest information still needs to be
+        # sent to the parent, dummy send a success that is ignored by the
+        # decoder
+        subtests = next((st for t, st in self.subtests if t == test), [])
+        if any(outcome is not None for _, outcome in subtests) and test not in self.subtested:
+            empty = Content(ContentType("application", "empty", {'charset': 'utf8'}), lambda : [b""])
+            self._addResult(self.addSuccess, test, details = {"forced_unknown": empty})
 
 #
 # We have to patch subunit since it doesn't understand how to handle addError

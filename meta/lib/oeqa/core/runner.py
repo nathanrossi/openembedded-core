@@ -148,7 +148,7 @@ class OETestResult(_TestResult):
 
     def addSubTest(self, test, subtest, err, details=None):
         self.extractExtraResults(test, details=details)
-        self.subtests.setdefault(test, list()).append(subtest)
+        self.subtests.setdefault(test.id(), list()).append(subtest)
         if err is None:
             self.successes.append((subtest, None))
         return super(OETestResult, self).addSubTest(test, subtest, err)
@@ -215,8 +215,8 @@ class OETestResult(_TestResult):
         for case_name in self.tc._registry['cases']:
             case = self.tc._registry['cases'][case_name]
 
-            if case in self.subtests:
-                for subtest in self.subtests[case]:
+            if case.id() in self.subtests:
+                for subtest in self.subtests[case.id()]:
                     logCaseDetails(subtest, True)
 
                 # The base case may not have any reported details. If it comes
