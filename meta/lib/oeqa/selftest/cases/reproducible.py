@@ -200,3 +200,23 @@ class ReproducibleTests(OESelftestTestCase):
                     self.fail("The following %s packages are missing or different: %s" %
                             (c, ' '.join(r.test for r in (result.missing + result.different))))
 
+class SubtestTest(OESelftestTestCase):
+    def test_simple(self):
+        self.assertTrue(True)
+
+    def test_simple2(self):
+        self.assertTrue(False)
+
+    def test_builds(self):
+        for c in ["a", "b", "c"]:
+            with self.subTest(val = c):
+                if c == "a":
+                    self.assertTrue(True)
+                else:
+                    self.assertTrue(False)
+
+    def test_builds2(self):
+        for c in ["a", "b", "c"]:
+            with self.subTest(val = c):
+                self.assertTrue(True)
+
