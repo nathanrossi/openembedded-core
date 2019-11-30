@@ -263,7 +263,7 @@ python write_image_manifest () {
 
     pkgs = image_list_installed_packages(d)
     with open(manifest_name, 'w+') as image_manifest:
-        image_manifest.write(format_pkg_list(pkgs, "ver"))
+        image_manifest.write(format_pkg_list(pkgs, "versize"))
 
     if os.path.exists(manifest_name) and link_name:
         manifest_link = deploy_dir + "/" + link_name + ".manifest"

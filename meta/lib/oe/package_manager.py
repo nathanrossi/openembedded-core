@@ -41,6 +41,7 @@ def opkg_query(cmd_output):
     filename = ""
     dep = []
     pkgarch = ""
+    isize = ""
     for line in cmd_output.splitlines():
         line = line.rstrip()
         if ':' in line:
@@ -64,6 +65,8 @@ def opkg_query(cmd_output):
                     dep.append("%s [REC]" % recommend)
             elif line.startswith("PackageArch: "):
                 pkgarch = line.split(": ")[1]
+            elif line.startswith("Installed-Size: "):
+                isize = line.split(": ")[1]
 
         # When there is a blank line save the package information
         elif not line:
@@ -72,19 +75,22 @@ def opkg_query(cmd_output):
                 filename = "%s_%s_%s.ipk" % (pkg, ver, arch)
             if pkg:
                 output[pkg] = {"arch":arch, "ver":ver,
-                        "filename":filename, "deps": dep, "pkgarch":pkgarch }
+                        "filename":filename, "deps": dep, "pkgarch":pkgarch,
+                        "size":isize}
             pkg = ""
             arch = ""
             ver = ""
             filename = ""
             dep = []
             pkgarch = ""
+            isize = ""
 
     if pkg:
         if not filename:
             filename = "%s_%s_%s.ipk" % (pkg, ver, arch)
         output[pkg] = {"arch":arch, "ver":ver,
-                "filename":filename, "deps": dep }
+                "filename":filename, "deps": dep,
+                "size":isize}
 
     return output
 
