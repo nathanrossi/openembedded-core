@@ -1,0 +1,21 @@
+From f593dafb8c9e9c332e45ef7ba174a6f98c555ff7 Mon Sep 17 00:00:00 2001
+From: Nathan Rossi <nathan@nathanrossi.com>
+Date: Tue, 17 Dec 2019 19:28:19 +1000
+Subject: [PATCH] wip
+
+---
+ mesonbuild/envconfig.py | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/mesonbuild/envconfig.py b/mesonbuild/envconfig.py
+index 29d74221f0..170560bde9 100644
+--- a/mesonbuild/envconfig.py
++++ b/mesonbuild/envconfig.py
+@@ -44,6 +44,7 @@ known_cpu_families = (
+     'microblaze',
+     'mips',
+     'mips64',
++    'or1k',
+     'parisc',
+     'ppc',
+     'ppc64',
