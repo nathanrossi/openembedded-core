@@ -52,3 +52,21 @@ KERNEL_FEATURES_append_qemux86=" cfg/sound.scc cfg/paravirt_kvm.scc"
 KERNEL_FEATURES_append_qemux86-64=" cfg/sound.scc cfg/paravirt_kvm.scc"
 KERNEL_FEATURES_append = " ${@bb.utils.contains("TUNE_FEATURES", "mx32", " cfg/x32.scc", "" ,d)}"
 KERNEL_FEATURES_append = " ${@bb.utils.contains("DISTRO_FEATURES", "ptest", " features/scsi/scsi-debug.scc", "" ,d)}"
+
+KERNEL_FEATURES_remove_qemuor1k = "features/netfilter/netfilter.scc"
+
+COMPATIBLE_MACHINE_qemuor1k = "qemuor1k"
+KBUILD_DEFCONFIG_qemuor1k = "or1ksim_defconfig"
+
+kernel_do_configure_prepend_qemuor1k() {
+    cp ${S}/arch/${ARCH}/configs/${KBUILD_DEFCONFIG} ${B}/.config
+    # iptables/etc modules
+    echo "CONFIG_PRINTK=y" >> ${B}/.config
+    echo "CONFIG_DEVTMPFS=y" >> ${B}/.config
+    echo "CONFIG_DEVTMPFS_MOUNT=y" >> ${B}/.config
+
+    # console is needed otherwise /dev/console is not valid
+    sed -i 's#bootargs = ".*";#bootargs = "console=ttyS0 earlycon debug";#g' ${S}/arch/${ARCH}/boot/dts/or1ksim.dts
+    sed -i 's#reg = <0x00000000 0x02000000>;#reg = <0x00000000 0x08000000>;#g' ${S}/arch/${ARCH}/boot/dts/or1ksim.dts
+}
+
