@@ -1,0 +1,67 @@
+From 0c149968e7010141b482116b97188e7e334cdeb1 Mon Sep 17 00:00:00 2001
+From: Nathan Rossi <nathan@nathanrossi.com>
+Date: Fri, 6 Mar 2020 01:49:44 +1000
+Subject: [PATCH] wip: fix opendir long path
+
+---
+ ports/unix/guts/opendir.c | 21 ++++++++++++++++-----
+ ports/unix/wrapfuncs.in   |  2 +-
+ 2 files changed, 17 insertions(+), 6 deletions(-)
+
+diff --git a/ports/unix/guts/opendir.c b/ports/unix/guts/opendir.c
+index 5d6f1f2946..c8651c0cf9 100644
+--- a/ports/unix/guts/opendir.c
++++ b/ports/unix/guts/opendir.c
+@@ -5,13 +5,24 @@
+  * SPDX-License-Identifier: LGPL-2.1-only
+  *
+  * static DIR *
+- * wrap_opendir(const char *path) {
++ * wrap_opendir(const char *name) {
+  *	DIR * rc = NULL;
+  */
+- 	PSEUDO_STATBUF buf;
++	PSEUDO_STATBUF buf;
+ 	int save_errno;
+ 
+-	rc = real_opendir(path);
++	char *rname = PSEUDO_ROOT_PATH(AT_FDCWD, name, 0);
++	ssize_t len;
++	if (!rname) {
++		errno = ENAMETOOLONG;
++		return NULL;
++	}
++	if ((len = strlen(rname)) >= pseudo_sys_path_max()) {
++		errno = ENAMETOOLONG;
++		return NULL;
++	}
++
++	rc = real_opendir(rname);
+ 	if (rc) {
+ 		int fd;
+ 		save_errno = errno;
+@@ -19,9 +30,9 @@
+ 		if (base_fstat(fd, &buf) == -1) {
+ 			pseudo_debug(PDBGF_CONSISTENCY, "diropen (fd %d) succeeded, but fstat failed (%s).\n",
+ 				fd, strerror(errno));
+-			pseudo_client_op(OP_OPEN, PSA_READ, fd, -1, path, 0);
++			pseudo_client_op(OP_OPEN, PSA_READ, fd, -1, rname, 0);
+ 		} else {
+-			pseudo_client_op(OP_OPEN, PSA_READ, fd, -1, path, &buf);
++			pseudo_client_op(OP_OPEN, PSA_READ, fd, -1, rname, &buf);
+ 		}
+ 
+ 
+diff --git a/ports/unix/wrapfuncs.in b/ports/unix/wrapfuncs.in
+index bd2706fc71..8a5642930e 100644
+--- a/ports/unix/wrapfuncs.in
++++ b/ports/unix/wrapfuncs.in
+@@ -20,7 +20,7 @@ char *mktemp(char *template);
+ long pathconf(const char *path, int name);
+ char *realpath(const char *name, char *resolved_name); /* version="GLIBC_2.3" */
+ int remove(const char *path); /* flags=AT_SYMLINK_NOFOLLOW */
+-DIR *opendir(const char *path); /* noignore_path=1 */
++DIR *opendir(const char *name); /* noignore_path=1 */
+ int closedir(DIR *dirp); /* noignore_path=1 */
+ char *tempnam(const char *template, const char *pfx);
+ char *tmpnam(char *s);
