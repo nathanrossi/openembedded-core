@@ -44,6 +44,7 @@ def opkg_query(cmd_output):
     dep = []
     prov = []
     pkgarch = ""
+    isize = ""
     for line in cmd_output.splitlines()+['']:
         line = line.rstrip()
         if ':' in line:
@@ -71,6 +72,8 @@ def opkg_query(cmd_output):
                 provides = verregex.sub('', line.split(": ")[1])
                 for provide in provides.split(", "):
                     prov.append(provide)
+            elif line.startswith("Installed-Size: "):
+                isize = line.split(": ")[1]
 
         # When there is a blank line save the package information
         elif not line:
@@ -79,7 +82,8 @@ def opkg_query(cmd_output):
                 filename = "%s_%s_%s.ipk" % (pkg, ver, arch)
             if pkg:
                 output[pkg] = {"arch":arch, "ver":ver,
-                        "filename":filename, "deps": dep, "pkgarch":pkgarch, "provs": prov}
+                        "filename":filename, "deps": dep, "pkgarch":pkgarch, "provs": prov,
+                        "size":isize}
             pkg = ""
             arch = ""
             ver = ""
@@ -87,6 +91,7 @@ def opkg_query(cmd_output):
             dep = []
             prov = []
             pkgarch = ""
+            isize = ""
 
     return output
 

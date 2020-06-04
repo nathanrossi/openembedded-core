@@ -123,7 +123,7 @@ python write_target_sdk_manifest () {
     if not os.path.exists(sdkmanifestdir):
         bb.utils.mkdirhier(sdkmanifestdir)
     with open(d.getVar('SDK_TARGET_MANIFEST'), 'w') as output:
-        output.write(format_pkg_list(pkgs, 'ver'))
+        output.write(format_pkg_list(pkgs, 'versize'))
 }
 
 sdk_prune_dirs () {
@@ -147,7 +147,7 @@ python write_host_sdk_manifest () {
     if not os.path.exists(sdkmanifestdir):
         bb.utils.mkdirhier(sdkmanifestdir)
     with open(d.getVar('SDK_HOST_MANIFEST'), 'w') as output:
-        output.write(format_pkg_list(pkgs, 'ver'))
+        output.write(format_pkg_list(pkgs, 'versize'))
 }
 
 POPULATE_SDK_POST_TARGET_COMMAND:append = " write_sdk_test_data ; "

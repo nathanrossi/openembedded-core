@@ -380,6 +380,9 @@ def format_pkg_list(pkg_dict, ret_format=None, pkgdata_dir=None):
     elif ret_format == "ver":
         for pkg in sorted(pkg_dict):
             output.append("%s %s %s" % (pkg, pkg_dict[pkg]["arch"], pkg_dict[pkg]["ver"]))
+    elif ret_format == "versize":
+        for pkg in sorted(pkg_dict):
+            output.append("%s %s %s %s" % (pkg, pkg_dict[pkg]["arch"], pkg_dict[pkg]["ver"], pkg_dict[pkg].get("size", 0)))
     elif ret_format == "deps":
         rprov_map = rprovides_map(pkgdata_dir, pkg_dict)
         for pkg in sorted(pkg_dict):
