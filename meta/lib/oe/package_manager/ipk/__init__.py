@@ -62,9 +62,9 @@ class OpkgIndexer(Indexer):
                                    armor=is_ascii_sig)
 
 class PMPkgsList(PkgsList):
-    def __init__(self, d, rootfs_dir):
+    def __init__(self, d, rootfs_dir, target = True):
         super(PMPkgsList, self).__init__(d, rootfs_dir)
-        config_file = d.getVar("IPKGCONF_TARGET")
+        config_file = d.getVar("IPKGCONF_SDK" if not target else "IPKGCONF_TARGET")
 
         self.opkg_cmd = bb.utils.which(os.getenv('PATH'), "opkg")
         self.opkg_args = "-f %s -o %s " % (config_file, rootfs_dir)

@@ -124,7 +124,7 @@ def sdk_list_installed_packages(d, target, rootfs_dir=None):
     img_type = d.getVar('IMAGE_PKGTYPE')
     import importlib
     cls = importlib.import_module('oe.package_manager.' + img_type)
-    return cls.PMPkgsList(d, rootfs_dir).list_pkgs()
+    return cls.PMPkgsList(d, rootfs_dir, target = target).list_pkgs()
 
 def populate_sdk(d, manifest_dir=None):
     env_bkp = os.environ.copy()
