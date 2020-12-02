@@ -36,6 +36,7 @@ TOOLCHAIN_HOST_TASK += "\
     nativesdk-glibc-gconv-cp1252 \
     nativesdk-glibc-gconv-euc-jp \
     nativesdk-glibc-gconv-libjis \
+    nativesdk-ldd \
     nativesdk-libxcrypt-dev \
     nativesdk-parted \
     nativesdk-dosfstools \
@@ -43,6 +44,28 @@ TOOLCHAIN_HOST_TASK += "\
     "
 # gconv-cp1250, cp1251 and euc-jp needed for iconv to work in vim builds
 # also copied list from uninative
+
+# HOSTTOOLS required tools
+TOOLCHAIN_HOST_TASK += " \
+    nativesdk-coreutils \
+    nativesdk-file \
+    nativesdk-which \
+    nativesdk-sed \
+    nativesdk-gawk \
+    nativesdk-grep \
+    nativesdk-bash \
+    nativesdk-cpio \
+    nativesdk-gzip \
+    nativesdk-bzip2 \
+    nativesdk-util-linux \
+    nativesdk-diffutils \
+    nativesdk-diffstat \
+    nativesdk-perl \
+    nativesdk-perl-modules \
+    "
+
+# Include perl, not the dummy replacement
+TOOLCHAIN_HOST_TASK_remove = "nativesdk-buildtools-perl-dummy"
 
 TOOLCHAIN_OUTPUTNAME = "${SDK_ARCH}-buildtools-extended-nativesdk-standalone-${DISTRO_VERSION}"
 
