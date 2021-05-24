@@ -7,7 +7,8 @@ require gcc-shared-source.inc
 
 # gcc 3.x expects 'f77', 4.0 expects 'f95', 4.1 and 4.2 expect 'fortran'
 FORTRAN ?= ",f77"
-LANGUAGES ?= "c,c++${FORTRAN}"
+ADA ?= ",ada"
+LANGUAGES ?= "c,c++${FORTRAN}${ADA}"
 
 EXTRA_OECONF_BASE ?= ""
 EXTRA_OECONF_PATHS ?= ""
@@ -99,6 +100,9 @@ do_configure () {
 		export CC_FOR_TARGET="${CC}"
 		export GCC_FOR_TARGET="${CC}"
 		export CXX_FOR_TARGET="${CXX}"
+		export GNATBIND_FOR_TARGET="${GNATBIND}"
+		export GNATLINK_FOR_TARGET="${GNATLINK}"
+		export GNATMAKE_FOR_TARGET="${GNATMAKE}"
 		export AS_FOR_TARGET="${HOST_PREFIX}as"
 		export LD_FOR_TARGET="${HOST_PREFIX}ld"
 		export NM_FOR_TARGET="${HOST_PREFIX}nm"
