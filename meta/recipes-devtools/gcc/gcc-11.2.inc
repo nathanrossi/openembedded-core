@@ -97,6 +97,7 @@ EXTRA_OECONF_BASE = "\
     --enable-checking=release \
     --enable-cheaders=c_global \
     --without-isl \
+    --disable-libada \
 "
 
 EXTRA_OECONF_PATHS = "\

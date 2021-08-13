@@ -85,6 +85,9 @@ export AS = "${BUILD_AS}"
 export RANLIB = "${BUILD_RANLIB}"
 export STRIP = "${BUILD_STRIP}"
 export NM = "${BUILD_NM}"
+export GNATBIND = "${BUILD_GNATBIND}"
+export GNATLINK = "${BUILD_GNATLINK}"
+export GNATMAKE = "${BUILD_GNATMAKE}"
 
 inherit nopackages
 
