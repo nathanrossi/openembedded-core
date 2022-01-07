@@ -1,1 +1,23 @@
 https://wiki.osdev.org/GNAT_Cross-Compiler
+https://gcc.gnu.org/onlinedocs/gnat_ugn/Switches-for-gnatmake.html
+
+
+fix hosttools for -11
+fix libsubdir/libdir in cross from pointing at sysroot-native (defaults.adb/Make-generated.in)
+fix up libgnat-11.so population into sysroot (libada)
+
+
+
+diff --git a/gcc/ada/gcc-interface/Makefile.in b/gcc/ada/gcc-interface/Makefile.in
+index 53d0739470..195740a07e 100644
+--- a/gcc/ada/gcc-interface/Makefile.in
++++ b/gcc/ada/gcc-interface/Makefile.in
+@@ -401,7 +401,7 @@ GENERATED_FILES_FOR_TOOLS = \
+                             $(LN_S) ../$(FILE) $(FILE);))
+        -$(foreach PAIR,$(TOOLS_TARGET_PAIRS), \
+                  $(RM) tools/$(word 1,$(subst <, ,$(PAIR)));\
+-                 $(LN_S) $(fsrcpfx)ada/$(word 2,$(subst <, ,$(PAIR))) \
++                 cp $(fsrcpfx)ada/$(word 2,$(subst <, ,$(PAIR))) \
+                        tools/$(word 1,$(subst <, ,$(PAIR)));)
+        touch ../stamp-tools
+

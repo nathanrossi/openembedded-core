@@ -1,3 +1,4 @@
+inherit gnat
 require gcc-configure-common.inc
 
 EXTRA_OECONF_PATHS = " \
@@ -5,40 +6,71 @@ EXTRA_OECONF_PATHS = " \
     --with-build-sysroot=${STAGING_DIR_TARGET} \
     "
 
-do_configure () {
-    for target in libada
-    do
-        rm -rf ${B}/${TARGET_SYS}/$target/
-        mkdir -p ${B}/${TARGET_SYS}/$target/
-        cd ${B}/${TARGET_SYS}/$target/
-        chmod a+x ${S}/$target/configure
-        relpath=${@os.path.relpath("${S}", "${B}/${TARGET_SYS}")}
-        ../$relpath/$target/configure ${CONFIGUREOPTS} ${EXTRA_OECONF}
-        # Easiest way to stop bad RPATHs getting into the library since we have a
-        # broken libtool here
-        sed -i -e 's/hardcode_into_libs=yes/hardcode_into_libs=no/' ${B}/${TARGET_SYS}/$target/libtool
-    done
+setup_for_environment() {
+    # Setup these vars for cross building only
+    # ... because foo_FOR_TARGET apparently gets misinterpreted inside the
+    # gcc build stuff when the build is producing a cross compiler - i.e.
+    # when the 'current' target is the 'host' system, and the host is not
+    # the target (because the build is actually making a cross compiler!)
+    if [ "${BUILD_SYS}" != "${HOST_SYS}" ]; then
+        export CC_FOR_TARGET="${CC}"
+        export GCC_FOR_TARGET="${CC}"
+        export CXX_FOR_TARGET="${CXX}"
+        export GNATBIND_FOR_TARGET="${GNATBIND}"
+        export GNATLINK_FOR_TARGET="${GNATLINK}"
+        export GNATMAKE_FOR_TARGET="${GNATMAKE}"
+        export AS_FOR_TARGET="${HOST_PREFIX}as"
+        export LD_FOR_TARGET="${HOST_PREFIX}ld"
+        export NM_FOR_TARGET="${HOST_PREFIX}nm"
+        export AR_FOR_TARGET="${HOST_PREFIX}ar"
+        export GFORTRAN_FOR_TARGET="gfortran"
+        export RANLIB_FOR_TARGET="${HOST_PREFIX}ranlib"
+    fi
+    export CC_FOR_BUILD="${BUILD_CC}"
+    export CXX_FOR_BUILD="${BUILD_CXX}"
+    export CFLAGS_FOR_BUILD="${BUILD_CFLAGS}"
+    export CPPFLAGS_FOR_BUILD="${BUILD_CPPFLAGS}"
+    export CXXFLAGS_FOR_BUILD="${BUILD_CXXFLAGS}"
+    export LDFLAGS_FOR_BUILD="${BUILD_LDFLAGS}"
+    export CFLAGS_FOR_TARGET="${TARGET_CFLAGS}"
+    export CPPFLAGS_FOR_TARGET="${TARGET_CPPFLAGS}"
+    export CXXFLAGS_FOR_TARGET="${TARGET_CXXFLAGS}"
+    export LDFLAGS_FOR_TARGET="${TARGET_LDFLAGS}"
 }
+
+do_configure () {
+    setup_for_environment
+
+    rm -rf ${B}/${TARGET_SYS}/libada/
+    mkdir -p ${B}/${TARGET_SYS}/libada/
+    cd ${B}/${TARGET_SYS}/libada/
+    chmod a+x ${S}/libada/configure
+
+    ${S}/libada/configure ${CONFIGUREOPTS} ${EXTRA_OECONF}
+}
+
 EXTRACONFFUNCS += "extract_stashed_builddir"
 do_configure[depends] += "${COMPILERDEP}"
 
 do_compile () {
-    for target in libada
-    do
-        cd ${B}/${TARGET_SYS}/$target/
-        oe_runmake MULTIBUILDTOP=${B}/${TARGET_SYS}/$target/
-    done
+    setup_for_environment
+
+    cd ${B}/${TARGET_SYS}/libada/
+    oe_runmake MULTIBUILDTOP=${B}/${TARGET_SYS}/libada/ libada
 }
 
 do_install () {
     cd ${B}/${TARGET_SYS}/libada/
     oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/libada/ install
-    if [ -d ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude ]; then
-        rmdir --ignore-fail-on-non-empty -p ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude
-    fi
-    if [ -d ${D}${infodir} ]; then
-        rmdir --ignore-fail-on-non-empty -p ${D}${infodir}
-    fi
+
+
+    # HACK: ?
+    mkdir -p ${D}${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}
+    mv ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/* ${D}${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/
+
+    # HACK: ?
+    install ${B}/${TARGET_SYS}/gcc/ada/rts/libgnat-11.so ${D}${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/adalib/
+
     chown -R root:root ${D}
 }
 

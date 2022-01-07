@@ -1,4 +1,5 @@
 inherit cross
+inherit gnat
 
 INHIBIT_DEFAULT_DEPS = "1"
 EXTRADEPENDS = ""
@@ -76,6 +77,12 @@ do_compile () {
 	sed -i 's@${STAGING_DIR_HOST}@/host@g' ${B}/gcc/checksum-options
 
 	oe_runmake all-host configure-target-libgcc
+
+	if ${@bb.utils.contains('ADA', ',ada', 'true', 'false', d)}; then
+		# When Ada language support is enabled, build the cross gnat* tools
+		oe_runmake -C gcc cross-gnattools ada.all.cross
+	fi
+
 	(cd ${B}/${TARGET_SYS}/libgcc; oe_runmake enable-execute-stack.c unwind.h md-unwind-support.h sfp-machine.h gthr-default.h)
 }
 

@@ -40,7 +40,6 @@ SRC_URI = "\
            file://0012-gcc-Fix-argument-list-too-long-error.patch \
            file://0014-libtool.patch \
            file://0015-gcc-armv4-pass-fix-v4bx-to-linker-to-support-EABI.patch \
-           file://0016-Use-the-multilib-config-files-from-B-instead-of-usin.patch \
            file://0017-Avoid-using-libdir-from-.la-which-usually-points-to-.patch \
            file://0018-export-CPP.patch \
            file://0019-Ensure-target-gcc-headers-can-be-included.patch \
