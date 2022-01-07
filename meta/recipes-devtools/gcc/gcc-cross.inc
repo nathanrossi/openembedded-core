@@ -1,5 +1,5 @@
 inherit cross
-inherit gnat
+inherit gnat-common
 
 INHIBIT_DEFAULT_DEPS = "1"
 EXTRADEPENDS = ""

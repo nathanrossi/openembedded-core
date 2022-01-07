@@ -1,4 +1,4 @@
-inherit gnat
+inherit gnat-common
 require gcc-configure-common.inc
 
 EXTRA_OECONF_PATHS = " \
