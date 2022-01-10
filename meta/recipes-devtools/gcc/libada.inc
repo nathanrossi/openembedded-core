@@ -61,15 +61,12 @@ do_compile () {
 
 do_install () {
     cd ${B}/${TARGET_SYS}/libada/
-    oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/libada/ install
-
+    oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/libada/ INSTALL="install -c" install
 
     # HACK: ?
     mkdir -p ${D}${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}
     mv ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/* ${D}${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/
-
-    # HACK: ?
-    install ${B}/${TARGET_SYS}/gcc/ada/rts/libgnat-11.so ${D}${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/adalib/
+    rm -r ${D}${libdir}/gcc
 
     chown -R root:root ${D}
 }
@@ -86,23 +83,21 @@ PACKAGES = " \
     libada-staticdev \
     "
 
-LICENSE_${PN} = "GPL-3.0-with-GCC-exception"
-LICENSE_${PN}-dev = "GPL-3.0-with-GCC-exception"
-LICENSE_${PN}-dbg = "GPL-3.0-with-GCC-exception"
+LICENSE:${PN} = "GPL-3.0-with-GCC-exception"
+LICENSE:${PN}-dev = "GPL-3.0-with-GCC-exception"
+LICENSE:${PN}-dbg = "GPL-3.0-with-GCC-exception"
 
-FILES_${PN} = "${libdir}/libada.so.*"
-FILES_${PN}-dev = " \
-    ${libdir}/libada*.so \
-    ${libdir}/libada.spec \
-    ${libdir}/libada.la \
-    ${libdir}/gcc/${TARGET_SYS}/${BINV}/libadabegin.* \
-    ${libdir}/gcc/${TARGET_SYS}/${BINV}/libcaf_single* \
-    ${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude/ \
-    ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/ \
+FILES:${PN} = " \
+    ${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/adalib/*-*.so \
     "
-FILES_${PN}-staticdev = "${libdir}/libada.a"
+FILES:${PN}-dev = " \
+    ${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/adainclude/ \
+    ${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/adalib/ \
+    ${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/ada_target_properties \
+    "
 
-INSANE_SKIP_${MLPREFIX}libada-dev = "staticdev"
+# TODO: fix GNU_HASH
+INSANE_SKIP:${PN} = "ldflags"
 
 do_package_write_ipk[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
 do_package_write_deb[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
