@@ -5,8 +5,6 @@ inherit gnat
 
 do_configure[noexec] = "1"
 
-DEPENDS += "libada"
-
 do_compile() {
     cat << __EOF > ${WORKDIR}/hello-world.adb
 with Text_IO; use Text_IO;
@@ -26,4 +24,3 @@ do_install() {
 RDEPENDS:${PN} += "libada"
 
 BBCLASSEXTEND += "native nativesdk"
-
