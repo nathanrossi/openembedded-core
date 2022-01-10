@@ -67,8 +67,11 @@ do_install () {
     install -d ${D}${libdir}
     for i in libgnat libgnarl; do
         for f in ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/adalib/$i*; do
-            cp -P $f ${D}${libdir}
+            mv $f ${D}${libdir}
         done
+        # symlink library in adalib/ to libdir object, so that only one shlib
+        # exists
+        ln -s ../../../../$i.so ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/adalib/$i.so
     done
 
     chown -R root:root ${D}
@@ -89,7 +92,6 @@ LICENSE:${PN}-dbg = "GPL-3.0-with-GCC-exception"
 
 FILES:${PN} = " \
     ${libdir}/lib*-*.so \
-    ${libdir}/gcc/${TARGET_SYS}/${BINV}/adalib/lib*-*.so \
     "
 FILES:${PN}-dev = " \
     ${libdir}/lib*.so \
