@@ -11,3 +11,9 @@ export BUILD_GNATLINK = "${BUILD_PREFIX}gnatlink"
 export BUILD_GNATMAKE = '${BUILD_PREFIX}gnatmake --GCC="${BUILD_CC}" --GNATBIND="${BUILD_GNATBIND}" --GNATLINK="${BUILD_GNATLINK}"'
 export BUILD_GNATLS = "${BUILD_PREFIX}gnatls"
 
+# remap target to native (BUILD) values when recipe is native
+GNATBIND:class-native = "${BUILD_GNATBIND}"
+GNATLINK:class-native = "${BUILD_GNATLINK}"
+GNATMAKE:class-native = "${BUILD_GNATMAKE}"
+GNATLS:class-native = "${BUILD_GNATLS}"
+
