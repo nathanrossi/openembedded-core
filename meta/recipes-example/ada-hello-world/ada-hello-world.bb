@@ -18,5 +18,9 @@ __EOF
     ${GNATMAKE}  -o hello-world ${WORKDIR}/hello-world.adb
 }
 
+do_install() {
+    install -Dm 755 ${B}/hello-world ${D}${bindir}/
+}
+
 BBCLASSEXTEND += "native nativesdk"
 
