@@ -15,12 +15,15 @@ begin
     Put_Line("Hello world!");
 end hello;
 __EOF
-    ${GNATMAKE}  -o hello-world ${WORKDIR}/hello-world.adb
+    ${GNATMAKE} -o hello-world ${WORKDIR}/hello-world.adb
 }
 
 do_install() {
-    install -Dm 755 ${B}/hello-world ${D}${bindir}/
+    install -Dm 0755 ${B}/hello-world ${D}${bindir}/hello-world
 }
+
+# TODO: fix shlibdep checks?
+RDEPENDS:${PN} += "libada"
 
 BBCLASSEXTEND += "native nativesdk"
 
