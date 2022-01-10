@@ -74,9 +74,6 @@ do_install () {
     chown -R root:root ${D}
 }
 
-INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "gcc-runtime gcc-cross-${TARGET_ARCH}"
-
 BBCLASSEXTEND = "nativesdk"
 
 PACKAGES = " \
