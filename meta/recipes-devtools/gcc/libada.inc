@@ -18,7 +18,7 @@ setup_for_environment() {
         export CXX_FOR_TARGET="${CXX}"
         export GNATBIND_FOR_TARGET="${GNATBIND}"
         export GNATLINK_FOR_TARGET="${GNATLINK}"
-        export GNATMAKE_FOR_TARGET="${GNATMAKE}"
+        export GNATMAKE_FOR_TARGET='${GNATMAKE}'
         export AS_FOR_TARGET="${HOST_PREFIX}as"
         export LD_FOR_TARGET="${HOST_PREFIX}ld"
         export NM_FOR_TARGET="${HOST_PREFIX}nm"
