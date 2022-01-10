@@ -63,10 +63,13 @@ do_install () {
     cd ${B}/${TARGET_SYS}/libada/
     oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/libada/ INSTALL="install -c" install
 
-    # HACK: ?
-    mkdir -p ${D}${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}
-    mv ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/* ${D}${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/
-    rm -r ${D}${libdir}/gcc
+    # install the libgna{t,rl} libs into libdir
+    install -d ${D}${libdir}
+    for i in libgnat libgnarl; do
+        for f in ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/adalib/$i*; do
+            cp -P $f ${D}${libdir}
+        done
+    done
 
     chown -R root:root ${D}
 }
@@ -88,16 +91,18 @@ LICENSE:${PN}-dev = "GPL-3.0-with-GCC-exception"
 LICENSE:${PN}-dbg = "GPL-3.0-with-GCC-exception"
 
 FILES:${PN} = " \
-    ${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/adalib/*-*.so \
+    ${libdir}/lib*-*.so \
+    ${libdir}/gcc/${TARGET_SYS}/${BINV}/adalib/lib*-*.so \
     "
 FILES:${PN}-dev = " \
-    ${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/adainclude/ \
-    ${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/adalib/ \
-    ${libdir}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/ada_target_properties \
+    ${libdir}/lib*.so \
+    ${libdir}/gcc/${TARGET_SYS}/${BINV}/adainclude/ \
+    ${libdir}/gcc/${TARGET_SYS}/${BINV}/adalib/ \
+    ${libdir}/gcc/${TARGET_SYS}/${BINV}/ada_target_properties \
     "
 
 # TODO: fix GNU_HASH
-INSANE_SKIP:${PN} = "ldflags"
+INSANE_SKIP:${PN} += "ldflags"
 
 do_package_write_ipk[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
 do_package_write_deb[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
