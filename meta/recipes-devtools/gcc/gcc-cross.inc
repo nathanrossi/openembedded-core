@@ -81,6 +81,17 @@ do_compile () {
 	if ${@bb.utils.contains('ADA', ',ada', 'true', 'false', d)}; then
 		# When Ada language support is enabled, build the cross gnat* tools
 		oe_runmake -C gcc cross-gnattools ada.all.cross
+
+		# Ada makefile creates symlinks with source, remove the unused file so
+		# that it is not stashed.
+		if [ -e ${B}/gcc/ada/tools/indepsw.adb ]; then
+			bbwarn "deleting ${B}/gcc/ada/tools/indepsw.adb"
+			rm ${B}/gcc/ada/tools/indepsw.adb
+		fi
+		if [ -e ${B}/gcc/ada/tools/tools/indepsw.adb ]; then
+			bbwarn "deleting ${B}/gcc/ada/tools/tools/indepsw.adb"
+			rm ${B}/gcc/ada/tools/tools/indepsw.adb
+		fi
 	fi
 
 	(cd ${B}/${TARGET_SYS}/libgcc; oe_runmake enable-execute-stack.c unwind.h md-unwind-support.h sfp-machine.h gthr-default.h)
